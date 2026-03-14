@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Code · Daily Digest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080808;
+      --bg2: #0d0d0d;
+      --bg3: #111111;
+      --border: #1e1e1e;
+      --border2: #2a2a2a;
+      --text: #e8e4d9;
+      --text2: #9a9690;
+      --text3: #555;
+      --accent: #c8f050;
+      --accent-dim: #6a8a20;
+      --blue: #3a80c0;
+      --blue-bg: #050d1a;
+      --green-bg: #071005;
+      --gold: #c0b060;
+      --gold-bg: #100e00;
+      --red: #d06060;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+```
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg2); border-bottom: 1px solid var(--border2);
+  padding: 18px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.masthead { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--accent); letter-spacing: -0.5px; }
+.masthead span { color: var(--text2); font-weight: 700; font-size: 18px; }
+.dateline { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 2px; margin-top: 3px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.api-status { font-size: 10px; color: var(--text3); letter-spacing: 1px; }
+.api-status.ok { color: var(--accent-dim); }
+.btn { background: none; border: 1px solid var(--border2); color: var(--text2); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 7px 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.15s; border-radius: 2px; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { border-color: var(--accent); color: var(--accent); }
+.btn.primary:hover { background: var(--accent); color: #000; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── LAYOUT ── */
+.layout { display: grid; grid-template-columns: 200px 1fr; min-height: calc(100vh - 65px); }
+
+/* ── SIDEBAR ── */
+.sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; overflow-y: auto; position: sticky; top: 65px; height: calc(100vh - 65px); }
+.sidebar-section { padding: 0 0 16px; }
+.sidebar-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 2.5px; padding: 0 16px 8px; }
+.topic-btn {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  color: var(--text3); font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  padding: 7px 16px; cursor: pointer; transition: all 0.12s;
+  border-left: 2px solid transparent; line-height: 1.4;
+}
+.topic-btn:hover { color: var(--text2); background: var(--bg3); border-left-color: var(--border2); }
+.topic-btn.active { color: var(--accent); background: #0f140a; border-left-color: var(--accent); font-weight: 700; }
+
+/* ── MAIN ── */
+main { padding: 36px 44px; max-width: 780px; }
+
+/* ── API KEY MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  z-index: 200; align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2);
+  padding: 32px 36px; width: 480px; max-width: 90vw;
+}
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
+.modal-desc { font-size: 11px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.modal-desc a { color: var(--accent); text-decoration: none; }
+.modal-desc a:hover { text-decoration: underline; }
+.input-group { margin-bottom: 16px; }
+.input-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; display: block; }
+.api-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  padding: 10px 14px; outline: none; border-radius: 2px;
+}
+.api-input:focus { border-color: var(--accent); }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-note { font-size: 10px; color: var(--text3); margin-top: 14px; line-height: 1.5; }
+
+/* ── DIGEST CONTENT ── */
+.edition-tag { font-size: 10px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; }
+.headline { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 900; line-height: 1.1; color: var(--text); margin-bottom: 8px; }
+.topic-badge { display: inline-block; font-size: 10px; color: var(--accent); border: 1px solid var(--accent-dim); padding: 3px 10px; border-radius: 2px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+.divider { height: 1px; background: linear-gradient(to right, var(--accent), transparent); margin: 20px 0; }
+
+.card { background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; padding: 18px 22px; margin-bottom: 14px; }
+.card-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 8px; }
+.card-text { font-size: 12px; color: #c0bcb0; line-height: 1.7; }
+
+.insight-card { background: var(--green-bg); border-color: #162008; }
+.insight-card .card-label { color: #4a7010; }
+.insight-card .card-text { color: #a0c860; }
+
+.cmd-card { background: var(--blue-bg); border-color: #0a1c36; }
+.cmd-card .card-label { color: var(--blue); }
+.cmd-box { background: #020810; border: 1px solid #0a2040; border-radius: 2px; padding: 10px 14px; font-size: 13px; color: #50a0e8; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; }
+.cmd-desc { font-size: 11px; color: #406080; line-height: 1.5; }
+
+.tip-card { background: var(--gold-bg); border-color: #2a2000; }
+.tip-card .card-label { color: #806030; }
+.tip-card .card-text { color: var(--gold); }
+
+.code-card { background: #050505; border-color: #181818; }
+.code-block { background: #030303; border: 1px solid #141414; border-radius: 2px; padding: 12px 16px; font-size: 12px; color: #70c040; line-height: 1.65; white-space: pre-wrap; word-break: break-all; }
+
+.facts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+.fact-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; padding: 12px 14px; font-size: 11px; color: var(--text2); line-height: 1.5; }
+.fact-item::before { content: "→ "; color: var(--accent); font-weight: 700; }
+
+/* ── LOADING ── */
+.loading-wrap { padding: 48px 0; }
+.skeleton { background: var(--bg3); border-radius: 2px; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+/* ── EMPTY / ERROR ── */
+.empty-state { padding: 60px 0; text-align: center; color: var(--text3); }
+.empty-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--text2); margin-bottom: 8px; }
+.empty-desc { font-size: 11px; line-height: 1.6; max-width: 340px; margin: 0 auto 24px; }
+.error-box { background: #0f0505; border: 1px solid #3a0808; border-radius: 2px; padding: 14px 18px; color: var(--red); font-size: 11px; line-height: 1.6; margin-bottom: 16px; }
+
+/* ── LANG TOGGLE ── */
+.lang-row { display: flex; gap: 6px; margin-bottom: 20px; }
+.lang-btn { background: none; border: 1px solid var(--border); color: var(--text3); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 10px; cursor: pointer; border-radius: 2px; transition: all 0.12s; }
+.lang-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 680px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  main { padding: 24px 18px; }
+  .headline { font-size: 26px; }
+  .facts-grid { grid-template-columns: 1fr; }
+}
+```
+
+  </style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">设置 API Key</div>
+    <div class="modal-desc">
+      需要 Anthropic API Key 才能生成每日摘要。<br>
+      Key 仅保存在浏览器本地，不会上传至任何服务器。<br><br>
+      获取 Key：<a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="apiKeyInput">Anthropic API Key</label>
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" onclick="saveKey()">保存并开始</button>
+      <button class="btn" onclick="closeModal()">取消</button>
+    </div>
+    <div class="modal-note">⚠ Key 仅存储在 localStorage，不会传输给第三方。</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+
+<header>
+  <div>
+    <div class="masthead">⬡ Claude Code <span>· Daily Digest</span></div>
+    <div class="dateline" id="dateline">Loading...</div>
+  </div>
+  <div class="header-right">
+    <span class="api-status" id="apiStatus">NO KEY</span>
+    <button class="btn" onclick="openModal()">API Key</button>
+    <button class="btn primary" id="refreshBtn" onclick="generate()" disabled>↻ 生成</button>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Topics</div>
+      <div id="topicList"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+
+  <main id="mainContent">
+    <div class="empty-state">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-title">Claude Code Daily Digest</div>
+      <div class="empty-desc">设置 Anthropic API Key，然后选择一个主题，即可生成今日学习摘要。</div>
+      <button class="btn primary" onclick="openModal()">设置 API Key →</button>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const TOPICS = [
+  "安装与环境配置", "CLAUDE.md 项目记忆", "Plan Mode 规划模式",
+  "Slash 命令大全", "MCP 服务器集成", "Hooks 自动化钩子",
+  "多智能体工作流", "Director Mode 导演模式", "Git 工作流",
+  "代码提示词工程", "自定义 Commands", "安全与权限控制",
+  "上下文管理技巧", "团队协作部署", "调试与问题排查"
+];
+
+let selectedTopic = null;
+let apiKey = localStorage.getItem("cc_digest_key") || "";
+let currentLang = "zh";
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+function init() {
+  // dateline
+  const now = new Date();
+  document.getElementById("dateline").textContent =
+    now.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
+
+  // auto-select today's topic
+  const dayIdx = Math.floor((now - new Date(now.getFullYear(), 0, 1)) / 86400000);
+  selectedTopic = TOPICS[dayIdx % TOPICS.length];
+
+  // render sidebar
+  const list = document.getElementById("topicList");
+  TOPICS.forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "topic-btn" + (t === selectedTopic ? " active" : "");
+    btn.textContent = t;
+    btn.onclick = () => selectTopic(t);
+    list.appendChild(btn);
+  });
+
+  updateApiStatus();
+  if (apiKey) generate();
+  else showEmpty();
+}
+
+function selectTopic(t) {
+  selectedTopic = t;
+  document.querySelectorAll(".topic-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent === t);
+  });
+  if (apiKey) generate();
+  else openModal();
+}
+
+function updateApiStatus() {
+  const el = document.getElementById("apiStatus");
+  const btn = document.getElementById("refreshBtn");
+  if (apiKey) {
+    el.textContent = "KEY ✓";
+    el.className = "api-status ok";
+    btn.disabled = false;
+  } else {
+    el.textContent = "NO KEY";
+    el.className = "api-status";
+    btn.disabled = true;
+  }
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById("apiKeyInput").value = apiKey;
+  document.getElementById("modal").classList.add("show");
+}
+function closeModal() {
+  document.getElementById("modal").classList.remove("show");
+}
+function saveKey() {
+  const val = document.getElementById("apiKeyInput").value.trim();
+  if (!val) { alert("请输入有效的 API Key"); return; }
+  apiKey = val;
+  localStorage.setItem("cc_digest_key", val);
+  closeModal();
+  updateApiStatus();
+  generate();
+}
+document.getElementById("modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("modal")) closeModal();
+});
+
+// ── GENERATE ─────────────────────────────────────────────────────────────
+async function generate() {
+  if (!apiKey) { openModal(); return; }
+  showLoading();
+  document.getElementById("refreshBtn").disabled = true;
+
+  const lang = currentLang === "zh" ? "中文（简体）" : "English";
+  const prompt = `为 Claude Code 工具的主题「${selectedTopic}」生成一份开发者每日学习摘要，用${lang}输出。
+只返回 JSON，不要 markdown 代码块，不要任何前言。JSON 结构如下：
+{
+  "headline": "一句有力的标题（20字以内）",
+  "summary": "2-3句话概述该主题的核心价值",
+  "keyInsight": "一个大多数开发者忽略的关键洞察（1-2句）",
+  "commandOfDay": { "cmd": "实际命令或语法", "what": "一句话说明功能" },
+  "tip": "一个立即可用的专业技巧（1-2句）",
+  "example": "一个具体的示例（命令行、代码或工作流步骤，最多4行）",
+  "quickFacts": ["事实1（15字以内）", "事实2（15字以内）", "事实3（15字以内）"]
+}`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const text = (data.content || []).map(b => b.text || "").join("");
+    const clean = text.replace(/```json|```/g, "").trim();
+    const digest = JSON.parse(clean);
+    renderDigest(digest);
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    document.getElementById("refreshBtn").disabled = false;
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderDigest(d) {
+  const main = document.getElementById("mainContent");
+  main.innerHTML = `
+    <div style="animation: fadeIn 0.4s ease">
+      <div class="lang-row">
+        <button class="lang-btn ${currentLang==='zh'?'active':''}" onclick="switchLang('zh')">中文</button>
+        <button class="lang-btn ${currentLang==='en'?'active':''}" onclick="switchLang('en')">English</button>
+      </div>
+
+      <div class="edition-tag">Today's Focus · ${selectedTopic}</div>
+      <h1 class="headline">${escHtml(d.headline)}</h1>
+      <span class="topic-badge">${escHtml(selectedTopic)}</span>
+      <div class="divider"></div>
+
+      <div class="card">
+        <div class="card-label">Overview · 概述</div>
+        <div class="card-text">${escHtml(d.summary)}</div>
+      </div>
+
+      <div class="card insight-card">
+        <div class="card-label">⚡ Key Insight · 核心洞察</div>
+        <div class="card-text">${escHtml(d.keyInsight)}</div>
+      </div>
+
+      <div class="card cmd-card">
+        <div class="card-label">Command of the Day · 今日命令</div>
+        <div class="cmd-box">${escHtml(d.commandOfDay?.cmd || "")}</div>
+        <div class="cmd-desc">${escHtml(d.commandOfDay?.what || "")}</div>
+      </div>
+
+      <div class="card tip-card">
+        <div class="card-label">★ Pro Tip · 专业技巧</div>
+        <div class="card-text">${escHtml(d.tip)}</div>
+      </div>
+
+      <div class="card code-card">
+        <div class="card-label">Example · 示例</div>
+        <div class="code-block">${escHtml(d.example)}</div>
+      </div>
+
+      <div class="card-label" style="margin:16px 0 8px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:2.5px">Quick Facts · 速记</div>
+      <div class="facts-grid">
+        ${(d.quickFacts||[]).map(f=>`<div class="fact-item">${escHtml(f)}</div>`).join("")}
+      </div>
+
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:10px">
+        <button class="btn primary" onclick="generate()">↻ 重新生成</button>
+        <button class="btn" onclick="copyDigest()" id="copyBtn">⎘ 复制内容</button>
+      </div>
+    </div>
+  `;
+  // store for copy
+  window._lastDigest = d;
+}
+
+function showLoading() {
+  document.getElementById("mainContent").innerHTML = `
+    <div class="loading-wrap" style="animation:fadeIn 0.2s">
+      <div class="skeleton" style="height:12px;width:130px;margin-bottom:14px"></div>
+      <div class="skeleton" style="height:40px;width:75%;margin-bottom:20px"></div>
+      <div class="skeleton" style="height:1px;width:100%;margin-bottom:20px"></div>
+      ${[80,80,90,80,100].map(h=>`<div class="skeleton" style="height:${h}px;width:100%;margin-bottom:12px"></div>`).join("")}
+    </div>`;
+}
+
+function showEmpty() {
+  document.getElementById("mainContent").innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-title">Claude Code Daily Digest</div>
+      <div class="empty-desc">设置 Anthropic API Key，选择左侧主题，立即生成今日学习摘要。</div>
+      <button class="btn primary" onclick="openModal()">设置 API Key →</button>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById("mainContent").innerHTML = `
+    <div class="error-box">⚠ 生成失败：${escHtml(msg)}</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn primary" onclick="generate()">重试</button>
+      <button class="btn" onclick="openModal()">检查 API Key</button>
+    </div>`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function switchLang(l) {
+  currentLang = l;
+  if (apiKey) generate();
+}
+
+function copyDigest() {
+  const d = window._lastDigest;
+  if (!d) return;
+  const text = [
+    `【Claude Code Daily Digest】${selectedTopic}`,
+    ``,
+    `📌 ${d.headline}`,
+    ``,
+    `概述：${d.summary}`,
+    ``,
+    `⚡ 核心洞察：${d.keyInsight}`,
+    ``,
+    `💻 今日命令：${d.commandOfDay?.cmd}`,
+    `   → ${d.commandOfDay?.what}`,
+    ``,
+    `★ 技巧：${d.tip}`,
+    ``,
+    `示例：\n${d.example}`,
+    ``,
+    `速记：\n${(d.quickFacts||[]).map(f=>`• ${f}`).join("\n")}`,
+  ].join("\n");
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copyBtn");
+    if (btn) { btn.textContent = "✓ 已复制"; setTimeout(()=>btn.textContent="⎘ 复制内容", 2000); }
+  });
+}
+
+// ── CSS ANIM ──────────────────────────────────────────────────────────────
+const style = document.createElement("style");
+style.textContent = `@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }`;
+document.head.appendChild(style);
+
+// ── START ─────────────────────────────────────────────────────────────────
+init();
+</script>
+
+</body>
+</html>
